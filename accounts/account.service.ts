@@ -25,9 +25,14 @@ export default {
 async function authenticate({ email, password, ipAddress }: any) {
     const account = await db.Account.scope('withHash').findOne({ where: { email } });
 
-    if (!account || !account.isVerified || !(await bcrypt.compare(password, account.passwordHash))) {
-        throw 'Email or password is incorrect';
-    }
+    if (!account)
+    throw 'Email or password is incorrect';
+
+    if (!account.verified)
+    throw 'Please verify your email first';
+
+    if (!(await bcrypt.compare(password, account.passwordHash)))
+    throw 'Email or password is incorrect';
 
     const jwtToken = generateJwtToken(account);
     const refreshToken = generateRefreshToken(account, ipAddress);
@@ -78,6 +83,9 @@ async function register(params: any, origin: any) {
 
     const isFirstAccount = (await db.Account.count()) === 0;
     account.role = isFirstAccount ? Role.Admin : Role.User;
+
+   
+    account.verified = null;
     account.verificationToken = randomTokenString();
 
     account.passwordHash = await hash(params.password);
@@ -88,14 +96,16 @@ async function register(params: any, origin: any) {
 }
 
 async function verifyEmail({ token }: any) {
-    const account = await db.Account.findOne({ where: { verificationToken: token} });
+    const account = await db.Account.findOne({ where: { verificationToken: token } });
 
     if (!account) throw 'Verification failed';
 
-    account.verified = Date.now();
+    // FIX: proper boolean-based verification
+    account.verified = new Date();
     account.verificationToken = null;
+
     await account.save();
-} 
+}
 
 async function forgotPassword({ email }: any, origin: any) {
     const account = await db.Account.findOne({ where: { email } });
@@ -113,7 +123,9 @@ async function validateResetToken({ token }: any) {
     const account = await db.Account.findOne({
         where: {
             resetToken: token,
-            resetTokenExpires: { [Op.gt]: Date.now() }
+            resetTokenExpires: {
+                [Op.gt]: new Date()
+            }
         }
     });
 
@@ -123,11 +135,15 @@ async function validateResetToken({ token }: any) {
 }
 
 async function resetPassword({ token, password }: any) {
-    const account = await validateResetToken({ token});
+    const account = await validateResetToken({ token });
 
     account.passwordHash = await hash(password);
-    account.passwordReset = Date.now();
+
+    account.passwordReset = new Date();
+
     account.resetToken = null;
+    account.resetTokenExpires = null;
+
     await account.save();
 }
 
@@ -147,7 +163,8 @@ async function create(params: any) {
     }
 
     const account = new db.Account(params);
-    account.verified = Date.now();
+
+    account.verified = new Date();
 
     account.passwordHash = await hash(params.password);
 
@@ -203,7 +220,7 @@ function generateRefreshToken(account: any, ipAddress: any) {
     return new db.RefreshToken({
         accountId: account.id,
         token: randomTokenString(),
-        expires: new Date(Date.now() + 7*24*60*60*100),
+        expires: new Date(Date.now() + 7*24*60*60*1000),
         createdByIp: ipAddress
     });
 }
