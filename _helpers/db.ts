@@ -1,5 +1,3 @@
-import config from '../config.json';
-import mysql from 'mysql2/promise';
 import { Sequelize } from 'sequelize';
 import accountModel from '../accounts/account.model';
 import refreshTokenModel from '../accounts/refresh-token.model';
@@ -10,16 +8,24 @@ export default db;
 initialize();
 
 async function initialize() {
-    const { host, port, user, password, database } = config.database;
-    const connection = await mysql.createConnection({ host, port, user, password });
-
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
-    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
+    const sequelize = new Sequelize(
+        process.env.DB_NAME || 'node_mysql_api',
+        process.env.DB_USER!,
+        process.env.DB_PASS!,
+        {
+            dialect: 'mysql',
+            host: process.env.DB_HOST,
+            port: Number(process.env.DB_PORT) || 4000,
+            dialectOptions: {
+                ssl: { rejectUnauthorized: true }
+            }
+        }
+    );
 
     db.Account = accountModel(sequelize);
     db.RefreshToken = refreshTokenModel(sequelize);
 
-    db.Account.hasMany(db.RefreshToken, { oneDelete : 'CASCADE'});
+    db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
 
     await sequelize.sync();

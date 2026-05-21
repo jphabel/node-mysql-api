@@ -1,7 +1,7 @@
 import { expressjwt as jwt } from 'express-jwt';
-import config from '../config.json';
 import db from '../_helpers/db';
-const { secret } = config;
+
+const secret = process.env.JWT_SECRET!;
 
 export default function authorize(roles: any = []) {
     if (typeof roles === 'string') {
@@ -9,7 +9,7 @@ export default function authorize(roles: any = []) {
     }
 
     return [
-        jwt ({ secret, algorithms: ['HS256'] }),
+        jwt({ secret, algorithms: ['HS256'] }),
         async (req: any, res: any, next: any) => {
             console.log('auth hit, req.auth:', req.auth);
             console.log('auth hit, req.user:', req.user);
@@ -18,7 +18,7 @@ export default function authorize(roles: any = []) {
                 console.log('account found:', account?.id, account?.role);
                 
                 if (!account || (roles.length && !roles.includes(account.role))) {
-                    return res.status(401).json({message : 'Unauthorized'});
+                    return res.status(401).json({ message: 'Unauthorized' });
                 }
 
                 req.auth.roles = account.role;
@@ -34,7 +34,7 @@ export default function authorize(roles: any = []) {
             const account = await db.Account.findByPk(req.auth.id);
 
             if (!account || (roles.length && !roles.includes(account.role))) {
-                return res.status(401).json({message : 'Unauthorized'});
+                return res.status(401).json({ message: 'Unauthorized' });
             }
 
             req.auth.roles = account.role;
