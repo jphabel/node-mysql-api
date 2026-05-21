@@ -9,5 +9,5 @@ export default async function sendEmail({ to, subject, html, from = process.env.
             pass: process.env.SMTP_PASS
         }
     });
-    await transporter.sendMail({ from, to, subject, html });
+    //await transporter.sendMail({ from, to, subject, html });
 }
