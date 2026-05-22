@@ -51,7 +51,7 @@ async function refreshToken({ token, ipAddress }: any) {
     const account = await refreshToken.getAccount();
 
     const newRefreshToken = generateRefreshToken(account, ipAddress);
-    refreshToken.revoked = Date.now();
+    refreshToken.revoked = new Date();
     refreshToken.revokedByIp = ipAddress;
     refreshToken.replacedByToken = newRefreshToken.token;
     await refreshToken.save();
@@ -69,7 +69,7 @@ async function refreshToken({ token, ipAddress }: any) {
 async function revokeToken({ token, ipAddress }: any) {
     const refreshToken = await getRefreshToken(token);
 
-    refreshToken.revoked = Date.now();
+    refreshToken.revoked = new Date();
     refreshToken.revokedByIp = ipAddress;
     await refreshToken.save();
 }
@@ -184,7 +184,7 @@ async function update(id: any, params: any) {
     }
 
     Object.assign(account, params);
-    account.updated = Date.now();
+    account.updated = new Date();
     await account.save();
 
     return basicDetails(account);
