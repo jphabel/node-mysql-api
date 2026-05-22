@@ -129,7 +129,7 @@ function validateResetTokenSchema(req: any, res: any, next: any) {
 }
 
 function validateResetToken(req: any, res: any, next: any) {
-    accountService.validateResetToken(res.body)
+    accountService.validateResetToken(req.body)
         .then(() => res.json({ message: 'Token is valid' }))
         .catch(next);
 }
@@ -225,7 +225,9 @@ function _delete(req: any, res: any, next: any) {
 function setTokenCookie(res: any, token: any) {
     const cookieOptions = {
         httpOnly: true,
-        expires: new Date(Date.now() + 7*24*60*60*1000)
+        expires: new Date(Date.now() + 7*24*60*60*1000),
+        secure: true,
+        sameSite: 'none' as const
     };
     res.cookie('refreshToken', token, cookieOptions);
 }
