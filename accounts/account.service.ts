@@ -121,15 +121,14 @@ async function forgotPassword({ email }: any, origin: any) {
 
 async function validateResetToken({ token }: any) {
     const account = await db.Account.findOne({
-        where: {
-            resetToken: token,
-            resetTokenExpires: {
-                [Op.gt]: new Date()
-            }
-        }
+        where: { resetToken: token }
     });
 
     if (!account) throw 'Invalid token';
+    
+    if (new Date() > new Date(account.resetTokenExpires)) {
+        throw 'Token has expired';
+    }
 
     return account;
 }
