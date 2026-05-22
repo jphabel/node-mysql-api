@@ -116,7 +116,11 @@ async function forgotPassword({ email }: any, origin: any) {
     account.resetTokenExpires = new Date(Date.now() + 24*60*60*1000);
     await account.save();
 
-    await sendPasswordResetEmail(account, origin);
+    try {
+        await sendPasswordResetEmail(account, origin);
+    } catch (err) {
+        console.error('Failed to send password reset email:', err);
+    }
 }
 
 async function validateResetToken({ token }: any) {
