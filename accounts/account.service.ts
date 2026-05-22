@@ -92,7 +92,7 @@ async function register(params: any, origin: any) {
 
     await account.save();
 
-    await sendVerificationEmail(account, origin);
+    await sendVerificationEmail(account, process.env.FRONTEND_URL);
 }
 
 async function verifyEmail({ token }: any) {
@@ -117,7 +117,7 @@ async function forgotPassword({ email }: any, origin: any) {
     await account.save();
 
     try {
-        await sendPasswordResetEmail(account, origin);
+        await sendPasswordResetEmail(account, process.env.FRONTEND_URL);
     } catch (err) {
         console.error('Failed to send password reset email:', err);
     }
