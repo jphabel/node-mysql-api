@@ -3,5 +3,5 @@ info:
   title: Node MySQL API
   version: 1.0.0
 servers:
-  - url: http://localhost:4000
+  - url: https://node-mysql-api-frdm.onrender.com
 paths: {}
